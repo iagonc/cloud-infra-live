@@ -5,7 +5,7 @@
 locals {
   vpc_id          = data.aws_vpc.default.id
   vpc_cidr_blocks = data.aws_vpc.default.cidr_block_associations[*].cidr_block
-  cidr_blocks     = var.custom_cidr != null ? [local.vpc_cidr_blocks, var.custom_cidr] : [local.vpc_cidr_blocks]
+  cidr_blocks     = var.custom_cidr != null ? concat(local.vpc_cidr_blocks, [var.custom_cidr]) : local.vpc_cidr_blocks
   server_port     = 80
 }
 
@@ -21,7 +21,7 @@ module "lb_security_group" {
   description = format("%s - LB", var.cluster_name)
   vpc_id      = local.vpc_id
 
-  ingress_cidr_blocks = local.internal_cidr_blocks
+  ingress_cidr_blocks = local.cidr_blocks
 
   ingress_with_cidr_blocks = [
     {
@@ -29,14 +29,14 @@ module "lb_security_group" {
       to_port     = local.server_port
       protocol    = "HTTP"
       description = "HTTP"
-      cidr_blocks = local.cidr_blocks
+      cidr_blocks = join(",", local.cidr_blocks)
     },
   ]
 
   egress_with_cidr_blocks = [
     {
       rule        = "all-all"
-      cidr_blocks = local.cidr_blocks
+      cidr_blocks = join(",", local.cidr_blocks)
     },
   ]
 }
@@ -71,9 +71,9 @@ module "load_balancer" {
 
   # NOTE: target group attachments are explicitly disabled in this input because they
   # must be managed by the 'aws_autoscaling_traffic_source_attachment' resource later
-  http = {
+  target_groups = {
     http = {
-      name                              = "${var.cluster_name}-local.server_port"
+      name                              = "${var.cluster_name}-http"
       protocol                          = "HTTP"
       port                              = local.server_port
       target_type                       = "instance"
@@ -136,12 +136,12 @@ module "asg" {
   name            = var.cluster_name
   use_name_prefix = false
 
-  min_size              = var.min_size
-  max_size              = var.max_size
-  desired_capacity      = var.desired_size
+  min_size              = var.asg_min_size
+  max_size              = var.asg_max_size
+  desired_capacity      = var.asg_desired_size
   protect_from_scale_in = var.protect_from_scale_in
 
-  vpc_zone_identifier = var.ami_name != null ? var.ami_name : data.aws_subnets.default.ids
+  vpc_zone_identifier = data.aws_subnets.default.ids
 
   termination_policies = [
     "OldestInstance",
@@ -156,8 +156,8 @@ module "asg" {
   instance_type = var.instance_type
   image_id      = data.aws_ami.ubuntu.id
   key_name      = var.key_pair_name
-  user_data = base64encode(templatefile("${path.module}/user-data.sh", {
-  server_port = local.server_port,
+  user_data = base64encode(templatefile("${path.module}/user-data/user-data.sh", {
+  ansible_repo = var.ansible_repo,
   }))
 
   security_groups = [module.asg_security_group.security_group_id]
@@ -180,10 +180,12 @@ module "asg" {
 # ------------------------------------------------------------------------------
 
 resource "aws_autoscaling_traffic_source_attachment" "this" {
+  for_each = module.load_balancer.target_groups
+
   autoscaling_group_name = module.asg.autoscaling_group_name
 
   traffic_source {
-    identifier = module.load_balancer.target_groups.arn
+    identifier = each.value.arn
     type       = "elbv2"
   }
 }

@@ -7,7 +7,7 @@ install_requirements() {
 }
 
 clone_repository() {
-  git clone https://github.com/iagonc/ansible-ops.git /home/ubuntu/ansible
+  git clone "https://github.com/${ansible_repo}.git" /home/ubuntu/ansible
 }
 
 run_ansible_playbook() {

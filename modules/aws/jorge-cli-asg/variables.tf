@@ -76,3 +76,16 @@ variable "disable_api_termination" {
   type        = bool
   default     = false
 }
+
+#TODO CHANGE DESCRIPTION
+variable "custom_cidr" {
+  description = "The account ID"
+  type        = string
+  default     = null
+}
+
+variable "ansible_repo" {
+  description = "The account ID"
+  type        = string
+  default     = null
+}
