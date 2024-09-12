@@ -50,7 +50,7 @@ module "load_balancer" {
   version = "9.11.0"
 
   name = var.cluster_name
-  
+
   enable_deletion_protection = false
 
   vpc_id  = local.vpc_id
