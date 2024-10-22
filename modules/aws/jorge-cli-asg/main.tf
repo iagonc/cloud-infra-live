@@ -27,8 +27,8 @@ module "lb_security_group" {
     {
       from_port   = local.server_port
       to_port     = local.server_port
-      protocol    = "HTTP"
-      description = "HTTP"
+      protocol    = "tcp"
+      description = "tcp"
       cidr_blocks = join(",", local.cidr_blocks)
     },
   ]
