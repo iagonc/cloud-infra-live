@@ -73,11 +73,11 @@ module "load_balancer" {
   # must be managed by the 'aws_autoscaling_traffic_source_attachment' resource later
   target_groups = {
     http = {
-      name                              = "${var.cluster_name}-http"
-      protocol                          = "HTTP"
-      port                              = local.server_port
-      target_type                       = "instance"
-      create_attachment                 = false
+      name              = "${var.cluster_name}-http"
+      protocol          = "HTTP"
+      port              = local.server_port
+      target_type       = "instance"
+      create_attachment = false
     }
   }
 }
@@ -157,19 +157,19 @@ module "asg" {
   image_id      = data.aws_ami.ubuntu.id
   key_name      = var.key_pair_name
   user_data = base64encode(templatefile("${path.module}/user-data/user-data.sh", {
-  ansible_repo = var.ansible_repo,
+    repo_url = var.repo_url,
   }))
 
   security_groups = [module.asg_security_group.security_group_id]
 
   scaling_policies = {
-    avg-cpu-policy-greater-than-50 = {
-      policy_type               = "TargetTrackingScaling"
+    avg-cpu-policy-greater-than-10 = {
+      policy_type = "TargetTrackingScaling"
       target_tracking_configuration = {
         predefined_metric_specification = {
           predefined_metric_type = "ASGAverageCPUUtilization"
         }
-        target_value = 50.0
+        target_value = 10.0
       }
     }
   }

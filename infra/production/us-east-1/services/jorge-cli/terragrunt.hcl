@@ -18,7 +18,6 @@ terraform {
 inputs = {
   instance_type = "t2.micro"
   custom_cidr   = "0.0.0.0/0"
-  ansible_repo  = "iagonc/ansible-ops"
 
   asg_min_size     = 1
   asg_max_size     = 3

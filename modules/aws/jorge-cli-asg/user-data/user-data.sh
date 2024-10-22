@@ -2,19 +2,13 @@
 
 install_requirements() {
   apt-get update
-  apt-get install -y git wget python python3-pip
-  pip3 install --upgrade pip boto ansible
+  apt-get install -y git wget go
 }
 
 clone_repository() {
-  git clone "https://github.com/${ansible_repo}.git" /home/ubuntu/ansible
-}
-
-run_ansible_playbook() {
-  ansible-playbook /home/ubuntu/ansible/playbook.yaml
+  git clone "${repo_url}" /home/ubuntu/jorge-cli
 }
 
 # Execute functions
 install_requirements
 clone_repository
-run_ansible_playbook

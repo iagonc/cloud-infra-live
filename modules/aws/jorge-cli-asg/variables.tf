@@ -84,8 +84,8 @@ variable "custom_cidr" {
   default     = null
 }
 
-variable "ansible_repo" {
-  description = "The account ID"
+variable "repo_url" {
+  description = "The URL of git project"
   type        = string
-  default     = null
+  default     = "https://github.com/iagonc/jorge-cli.git"
 }
