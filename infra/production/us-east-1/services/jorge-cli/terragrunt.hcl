@@ -23,5 +23,5 @@ inputs = {
   asg_max_size     = 3
   asg_desired_size = 2
 
-  key_pair_name = "my_keypair"
+  key_pair_name = "newkeypair"
 }
